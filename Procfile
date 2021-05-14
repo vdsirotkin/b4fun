@@ -1,0 +1,1 @@
+worker: ENV=production yarn distribute
