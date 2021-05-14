@@ -2,9 +2,11 @@
 import 'module-alias/register'
 // Config dotenv
 import * as dotenv from 'dotenv'
+import * as expand from 'dotenv-expand'
 
 if (process.env.ENV == 'production') {
-  dotenv.config({ path: `${__dirname}/../.env.production` });
+  const config = dotenv.config({ path: `${__dirname}/../.env.production` });
+  expand(config)
 } else {
   dotenv.config({ path: `${__dirname}/../.env` });
 }
