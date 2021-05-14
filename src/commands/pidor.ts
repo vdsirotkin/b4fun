@@ -3,13 +3,13 @@ import {ChatInfo, findActiveChats, StatInfo} from "@/models/ChatInfo";
 import {isGroup} from "@/middlewares/isGroup";
 import {getUserLink} from "@/helpers/user";
 import moment = require("moment");
-import {TelegrafContext} from "telegraf/typings/context";
 import { scheduleJob } from "node-schedule";
 import {DocumentType} from "@typegoose/typegoose";
+import {MyContext} from "../types/telegraf";
 
 const randomInteger = require('random-int')
 
-function registerChatMemberListener(bot: Telegraf<Context>) {
+function registerChatMemberListener(bot: Telegraf<MyContext>) {
     bot.on('message', isGroup, async (ctx, next) => {
         const userId = ctx.from.id;
         const chatInfo = ctx.chatInfo;
@@ -23,7 +23,7 @@ function registerChatMemberListener(bot: Telegraf<Context>) {
     })
 }
 
-function findPidor(bot: Telegraf<Context>) {
+function findPidor(bot: Telegraf<MyContext>) {
     bot.command(['pidor'], isGroup, async (ctx) => {
         const chatInfo = ctx.chatInfo;
         if (chatInfo.stats.length <= 1) {
@@ -51,7 +51,7 @@ async function electNewPidor(tlgrm: Telegram, chatInfo: DocumentType<ChatInfo>) 
     setTimeout(async () => await tlgrm.sendMessage(chatInfo.id, 'Сегодня пидор дня - ' + getUserLink(member.user), {parse_mode: 'HTML'}), 2000)
 }
 
-function pidorStats(bot: Telegraf<Context>) {
+function pidorStats(bot: Telegraf<MyContext>) {
     bot.command('stats', async ctx => {
         const results = await ctx.chatInfo.stats
             .sort((a, b) => b.pidorCount - a.pidorCount)
@@ -64,7 +64,7 @@ function pidorStats(bot: Telegraf<Context>) {
     })
 }
 
-function schedulePidor(bot: Telegraf<TelegrafContext>) {
+function schedulePidor(bot: Telegraf<MyContext>) {
     scheduleJob(
         // '0 */1 * * * *',
         '0 15 * * *',
@@ -76,7 +76,7 @@ function schedulePidor(bot: Telegraf<TelegrafContext>) {
     })
 }
 
-export function setupPidor(bot: Telegraf<Context>) {
+export function setupPidor(bot: Telegraf<MyContext>) {
     registerChatMemberListener(bot)
     findPidor(bot)
     pidorStats(bot)
