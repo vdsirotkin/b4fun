@@ -57,7 +57,7 @@ function pidorStats(bot: Telegraf<MyContext>) {
             .sort((a, b) => b.pidorCount - a.pidorCount)
             .map(async (value, index) => {
                 const user = (await ctx.getChatMember(value.userId)).user;
-                return `${index + 1}. ${user.first_name} ${user.last_name} - ${value.pidorCount}`;
+                return `${index + 1}. ${user.first_name} ${user.last_name || ''} - ${value.pidorCount}`;
             })
         const resultstr = (await Promise.all(results)).join("\n")
         ctx.reply(`Результаты:\n\n` + resultstr)
