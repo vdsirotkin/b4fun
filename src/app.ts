@@ -17,10 +17,10 @@ import { setupHelp } from '@/commands/help'
 import { setupI18N } from '@/helpers/i18n'
 import {attachChat} from "@/middlewares/attachChat";
 import {setupPidor} from "@/commands/pidor";
-import {logEverything} from "./middlewares/logEverything";
+const TelegrafLogger = require('telegraf-logger')
 
 // Check time
-bot.use(logEverything)
+bot.use(new TelegrafLogger({format: '%ut => [%ci] @%u %ln (%fi): <%ust> %c'}).middleware())
 bot.use(checkTime)
 bot.use(attachChat)
 // Setup localization
@@ -33,3 +33,4 @@ setupPidor(bot)
 bot.launch().then(() => {
   console.info('Bot is up and running')
 })
+bot.catch((err, ctx) => console.log(err))

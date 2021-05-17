@@ -1390,6 +1390,11 @@ telegraf-i18n@^6.6.0:
     debug "^4.0.1"
     js-yaml "^3.6.1"
 
+telegraf-logger@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/telegraf-logger/-/telegraf-logger-3.0.0.tgz#7241e1252bd89f2eb20c1967a6cedbad5b57250c"
+  integrity sha512-ktkp04nBJMGLL4YEVN9k/bNwXTLusSz6E85DNsIjeaUfzfQdnxHQpX1doXm73zs86EajnbfSUfCji80YRP3Gsg==
+
 telegraf@^4.3.0:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/telegraf/-/telegraf-4.3.0.tgz#c9683192bdb81e7c7fbb04cf1ce750fb34de7149"
