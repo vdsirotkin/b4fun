@@ -6,6 +6,7 @@ import moment = require("moment");
 import { scheduleJob } from "node-schedule";
 import {DocumentType} from "@typegoose/typegoose";
 import {MyContext} from "../types/telegraf";
+import { ChatMember } from "telegraf/typings/core/types/typegram";
 
 const randomInteger = require('random-int')
 
@@ -41,13 +42,24 @@ function findPidor(bot: Telegraf<MyContext>) {
 
 async function electNewPidor(tlgrm: Telegram, chatInfo: DocumentType<ChatInfo>) {
     tlgrm.sendMessage(chatInfo.id, 'Выбираем нового пидора...')
-    const randomUserIndex = randomInteger(0, chatInfo.stats.length - 1);
-    const randomUser = chatInfo.stats[randomUserIndex];
+    let randomUserIndex: number;
+    let randomUser: StatInfo = null;
+    let member: ChatMember;
+    while (randomUser == null) {
+        randomUserIndex = randomInteger(0, chatInfo.stats.length - 1);
+        randomUser = chatInfo.stats[randomUserIndex];
+        try {
+            member = await tlgrm.getChatMember(chatInfo.id, randomUser.userId);
+        } catch (e) {
+            console.warn(e)
+            chatInfo.stats = chatInfo.stats.filter((_, index) => index === randomUserIndex)
+            randomUser = null
+        }
+    }
     randomUser.pidorCount++
     chatInfo.lastPidorOfTheDay = randomUser.userId
     chatInfo.lastChooseDate = moment().startOf('days').toDate()
     await chatInfo.save()
-    const member = await tlgrm.getChatMember(chatInfo.id, randomUser.userId);
     setTimeout(async () => await tlgrm.sendMessage(chatInfo.id, 'Сегодня пидор дня - ' + getUserLink(member.user), {parse_mode: 'HTML'}), 2000)
 }
 
@@ -56,10 +68,18 @@ function pidorStats(bot: Telegraf<MyContext>) {
         const results = await ctx.chatInfo.stats
             .sort((a, b) => b.pidorCount - a.pidorCount)
             .map(async (value, index) => {
-                const user = (await ctx.getChatMember(value.userId)).user;
-                return `${index + 1}. ${user.first_name} ${user.last_name || ''} - ${value.pidorCount}`;
+                try {
+                    const user = (await ctx.getChatMember(value.userId)).user;
+                    return `${user.first_name} ${user.last_name || ''} - ${value.pidorCount}`;
+                } catch (e) {
+                    console.warn(e)
+                }
+                return null
             })
-        const resultstr = (await Promise.all(results)).join("\n")
+        const resultstr = (await Promise.all(results))
+            .filter(value => value != null)
+            .map((value, index) => `${index}. ${value}`)
+            .join("\n")
         ctx.reply(`Результаты:\n\n` + resultstr)
     })
 }
