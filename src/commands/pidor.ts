@@ -1,7 +1,7 @@
 import {Context, Telegraf, Telegram} from "telegraf";
 import {ChatInfo, findActiveChats, StatInfo} from "@/models/ChatInfo";
 import {isGroup} from "@/middlewares/isGroup";
-import {getUserLink} from "@/helpers/user";
+import {getUserLink, mapUser, UserFrontInfo} from "@/helpers/user";
 import moment = require("moment");
 import { scheduleJob } from "node-schedule";
 import {DocumentType} from "@typegoose/typegoose";
@@ -19,6 +19,15 @@ function registerChatMemberListener(bot: Telegraf<MyContext>) {
             info.userId = userId
             chatInfo.stats.push(info)
             await chatInfo.save()
+        } else {
+            const user = chatInfo.stats.find(value => value.userId == userId);
+            if (user && !user.infoFilled) {
+                user.firstName = ctx.from.first_name
+                user.lastName = ctx.from.last_name
+                user.username = ctx.from.username
+                user.infoFilled = true
+                await chatInfo.save()
+            }
         }
         return next()
     })
@@ -34,8 +43,18 @@ function findPidor(bot: Telegraf<MyContext>) {
             await electNewPidor(bot.telegram, chatInfo);
         } else {
             const lastPidorOfTheDay = ctx.chatInfo.lastPidorOfTheDay;
-            const member = await ctx.getChatMember(lastPidorOfTheDay);
-            await ctx.replyWithHTML('Сегодня пидор дня - ' + getUserLink(member.user))
+            const member = ctx.chatInfo.stats.find(val => val.userId == lastPidorOfTheDay)
+            if (member && member.infoFilled) {
+                await ctx.replyWithHTML('Сегодня пидор дня - ' + getUserLink({
+                    id: member.userId,
+                    lastName: member.lastName,
+                    firstName: member.firstName,
+                    username: member.username
+                }))
+            } else {
+                const member = await ctx.getChatMember(lastPidorOfTheDay);
+                await ctx.replyWithHTML('Сегодня пидор дня - ' + getUserLink(mapUser(member.user)))
+            }
         }
     })
 }
@@ -44,12 +63,22 @@ async function electNewPidor(tlgrm: Telegram, chatInfo: DocumentType<ChatInfo>) 
     tlgrm.sendMessage(chatInfo.id, 'Выбираем нового пидора...')
     let randomUserIndex: number;
     let randomUser: StatInfo = null;
-    let member: ChatMember;
+    let member: UserFrontInfo;
     while (randomUser == null) {
         randomUserIndex = randomInteger(0, chatInfo.stats.length - 1);
         randomUser = chatInfo.stats[randomUserIndex];
         try {
-            member = await tlgrm.getChatMember(chatInfo.id, randomUser.userId);
+            if (randomUser.infoFilled) {
+                member = {
+                    id: randomUser.userId,
+                    lastName: randomUser.lastName,
+                    firstName: randomUser.firstName,
+                    username: randomUser.username
+                }
+            } else {
+                const chatMember = await tlgrm.getChatMember(chatInfo.id, randomUser.userId);
+                member = mapUser(chatMember.user)
+            }
         } catch (e) {
             console.warn(e)
             chatInfo.stats = chatInfo.stats.filter((_, index) => index === randomUserIndex)
@@ -60,7 +89,7 @@ async function electNewPidor(tlgrm: Telegram, chatInfo: DocumentType<ChatInfo>) 
     chatInfo.lastPidorOfTheDay = randomUser.userId
     chatInfo.lastChooseDate = moment().startOf('days').toDate()
     await chatInfo.save()
-    setTimeout(async () => await tlgrm.sendMessage(chatInfo.id, 'Сегодня пидор дня - ' + getUserLink(member.user), {parse_mode: 'HTML'}), 2000)
+    setTimeout(async () => await tlgrm.sendMessage(chatInfo.id, 'Сегодня пидор дня - ' + getUserLink(member), {parse_mode: 'HTML'}), 2000)
 }
 
 function pidorStats(bot: Telegraf<MyContext>) {

@@ -5,6 +5,18 @@ export class StatInfo {
     @prop({required: true})
     userId: number
 
+    @prop({required: true, default: '-'})
+    firstName: string
+
+    @prop({required: true, default: '-'})
+    lastName: string
+
+    @prop({default: null})
+    username: string
+
+    @prop({required: true, default: false})
+    infoFilled: boolean
+
     @prop({required: true, default: 0})
     pidorCount: number
 }
