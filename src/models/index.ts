@@ -5,6 +5,7 @@ mongoose.connect(process.env.MONGO, {
   useUnifiedTopology: true,
 }).then(() => console.log('connected to mongo'))
 
-mongoose.set('useCreateIndex', true)
+mongoose.set('useCreateIndex', true);
+(mongoose.Schema.Types.String as any).checkRequired(v => v != null);
 
 export * from './ChatInfo'

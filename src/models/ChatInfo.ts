@@ -5,10 +5,10 @@ export class StatInfo {
     @prop({required: true})
     userId: number
 
-    @prop({required: true, default: '-'})
+    @prop({required: true, default: ''})
     firstName: string
 
-    @prop({required: true, default: '-'})
+    @prop({required: true, default: ''})
     lastName: string
 
     @prop({default: null})
