@@ -23,7 +23,7 @@ function registerChatMemberListener(bot: Telegraf<MyContext>) {
             const user = chatInfo.stats.find(value => value.userId == userId);
             if (user && !user.infoFilled) {
                 user.firstName = ctx.from.first_name
-                user.lastName = ctx.from.last_name
+                user.lastName = (ctx.from.last_name || '')
                 user.username = ctx.from.username
                 user.infoFilled = true
                 await chatInfo.save()
