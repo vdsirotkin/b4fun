@@ -5,8 +5,7 @@ import {getUserLink, mapUser, UserFrontInfo} from "@/helpers/user";
 import moment = require("moment");
 import { scheduleJob } from "node-schedule";
 import {DocumentType} from "@typegoose/typegoose";
-import {MyContext} from "../types/telegraf";
-import { ChatMember } from "telegraf/typings/core/types/typegram";
+import {MyContext} from "@/types/telegraf";
 
 const randomInteger = require('random-int')
 
@@ -14,20 +13,19 @@ function registerChatMemberListener(bot: Telegraf<MyContext>) {
     bot.on('message', isGroup, async (ctx, next) => {
         const userId = ctx.from.id;
         const chatInfo = ctx.chatInfo;
-        if (!chatInfo.stats.map(value => value.userId).includes(userId)) {
-            const info = new StatInfo();
-            info.userId = userId
-            chatInfo.stats.push(info)
+        let userInfo: StatInfo = chatInfo.stats.find(value => value.userId == userId)
+        if (!userInfo) {
+            userInfo = new StatInfo();
+            userInfo.userId = userId;
+            const index = chatInfo.stats.push(userInfo);
+            userInfo = chatInfo.stats[index-1]
+        }
+        if (!userInfo.infoFilled) {
+            userInfo.firstName = ctx.from.first_name
+            userInfo.lastName = (ctx.from.last_name || '')
+            userInfo.username = ctx.from.username
+            userInfo.infoFilled = true
             await chatInfo.save()
-        } else {
-            const user = chatInfo.stats.find(value => value.userId == userId);
-            if (user && !user.infoFilled) {
-                user.firstName = ctx.from.first_name
-                user.lastName = (ctx.from.last_name || '')
-                user.username = ctx.from.username
-                user.infoFilled = true
-                await chatInfo.save()
-            }
         }
         return next()
     })
@@ -69,19 +67,13 @@ async function electNewPidor(tlgrm: Telegram, chatInfo: DocumentType<ChatInfo>) 
         randomUser = chatInfo.stats[randomUserIndex];
         try {
             if (randomUser.infoFilled) {
-                member = {
-                    id: randomUser.userId,
-                    lastName: randomUser.lastName,
-                    firstName: randomUser.firstName,
-                    username: randomUser.username
-                }
+                member = {id: randomUser.userId, lastName: randomUser.lastName, firstName: randomUser.firstName, username: randomUser.username}
             } else {
                 const chatMember = await tlgrm.getChatMember(chatInfo.id, randomUser.userId);
                 member = mapUser(chatMember.user)
             }
         } catch (e) {
             console.warn(e)
-            chatInfo.stats = chatInfo.stats.filter((_, index) => index === randomUserIndex)
             randomUser = null
         }
     }
