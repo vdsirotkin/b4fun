@@ -3,3 +3,5 @@ help: |
   <b>Bot</b> allows you to see how Telegraf bots can be built.
 language: Please, select the language.
 language_selected: <b>Bot</b> now speaks English.
+group_only: This bot is group only
+not_enough_users: There are not enough users to proceed
