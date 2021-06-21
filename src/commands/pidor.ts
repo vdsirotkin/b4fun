@@ -102,7 +102,7 @@ function pidorStats(bot: Telegraf<MyContext>) {
             })
         const resultstr = (await Promise.all(results))
             .filter(value => value != null)
-            .map((value, index) => `${index}. ${value}`)
+            .map((value, index) => `${index + 1}. ${value}`)
             .join("\n")
         ctx.reply(`Результаты:\n\n` + resultstr)
     })
