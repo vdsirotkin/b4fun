@@ -22,9 +22,7 @@ jobs:
     steps:
       # Runs a single command using the runners shell
       - name: SSH remote command executer
-  # You may pin to the exact commit or the version.
-  # uses: tarunjangra/ssh-remote-cmd@514a9d52b1fb4cbf07d92049c771d331f005d9ba
-      - uses: tarunjangra/ssh-remote-cmd@v1
+        uses: tarunjangra/ssh-remote-cmd@v1
         with:
           # Command to execute on the remote server.
           command: ./update-b4fun.sh
