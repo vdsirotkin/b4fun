@@ -20,7 +20,7 @@ import {setupPidor} from "@/commands/pidor";
 const TelegrafLogger = require('telegraf-logger')
 
 // Check time
-bot.use(new TelegrafLogger({format: '%ut => [%ci] @%u %ln (%fi): <%ust> %c'}).middleware())
+//bot.use(new TelegrafLogger({format: '%ut => [%ci] @%u %ln (%fi): <%ust> %c'}).middleware())
 bot.use(checkTime)
 bot.use(attachChat)
 // Setup localization
