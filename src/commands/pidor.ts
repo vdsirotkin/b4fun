@@ -58,7 +58,11 @@ function findPidor(bot: Telegraf<MyContext>) {
 }
 
 async function electNewPidor(tlgrm: Telegram, chatInfo: DocumentType<ChatInfo>) {
-    tlgrm.sendMessage(chatInfo.id, 'Выбираем нового пидора...')
+    try {
+        await tlgrm.sendMessage(chatInfo.id, 'Выбираем нового пидора...')
+    } catch (e) {
+        return
+    }
     let randomUserIndex: number;
     let randomUser: StatInfo = null;
     let member: UserFrontInfo;
